@@ -6,9 +6,8 @@ exports.create = (req, res, next) => {
   const { name, description, public, teamId } = req.body
 
   // Get Team
-  Team.findOne({ _id: teamId}, (err, team) => {
-    if (err) { return next(err) }
-
+  Team.findOne({ _id: teamId})
+    .then((team) => {
     if (!team) {
       return res.status(422).send({ error: 'Cannot retrieve project' })
     }
@@ -29,16 +28,18 @@ exports.create = (req, res, next) => {
     channel.users.push(req.user)
 
     // Save channel
-    channel.save((err) => {
-      if (err) { return next(err) }
+    channel.save()
+      .then(() => {
+        // Populate channel into team
+        team.channels.push(channel)
 
-      // Populate channel into team
-      team.channels.push(channel)
-      team.save((err) => {
-        res.send({ channel: channel._id, success: 'Channel created successfully' })
+        team.save()
+        .then(() => res.send({ channel: channel, success: 'Channel created successfully' }))
+        .catch((err) => next(err))
       })
-    })
+      .catch((err) => next(err))
   })
+  .catch((err) => next(err))
 }
 
 
@@ -48,11 +49,9 @@ exports.find = (req, res, next) => {
 
 exports.findByTeam = (req, res, next) => {
   // Get all channels for one team
-  Team.findOne({ _id: req.query.teamId }).populate('channels').exec((err, team) => {
-    if (err) { return next(err) }
-
-    res.send({ channels: team.channels })
-  })
+  Team.findOne({ _id: req.query.teamId }).populate('channels').exec()
+    .then((team) => res.send({ channels: team.channels }))
+    .catch((err) => next(err))
 }
 
 exports.update = (req, res, next) => {
@@ -69,11 +68,9 @@ exports.update = (req, res, next) => {
   channel.description = description
 
   // Save channel
-  channel.save((err) => {
-    if (err) { return next(err) }
-
-    res.send({ channel: channel, success: 'Channel updated successfully' })
-  })
+  channel.save()
+    .then(() => res.send({ channel: channel, success: 'Channel updated successfully' }))
+    .catch((err) => next(err))
 }
 
 exports.delete = (req, res, next) => {
@@ -85,20 +82,19 @@ exports.delete = (req, res, next) => {
   const channel = new Channel(req.channel)
 
   // Remove channels from team
-  Team.findOne({ _id: req.channel.team }, (err, team) => {
-    if (err) { return next(err) }
+  Team.findOne({ _id: req.channel.team })
+    .then((team) => {
 
     team.channels.remove(channel)
 
-    team.save((err) => {
-      if (err) { return next(err) }
-
+    team.save()
+      .then(() => {
       // Remove channel
-      channel.remove((err) => {
-        if (err) { return next(err) }
-
-        res.send({ channel: channel, success: 'Channel deleted successfully' })
-      })
+      channel.remove()
+        .then(() => res.send({ channel: channel, success: 'Channel deleted successfully' }))
+        .catch((err) => next(err))
     })
+    .catch((err) => next(err))
   })
+  .catch((err) => next(err))
 }

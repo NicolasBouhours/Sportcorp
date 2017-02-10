@@ -3,15 +3,15 @@ const Team = require('../models/team')
 
 const ExtractTeam = (req, res, next) => {
 
-  Team.findOne({ _id: req.params.teamId}, (err, team) => {
-    if (err) { return next(err) }
+  Team.findOne({ _id: req.params.teamId})
+    .then((team) => {
+      if (team) {
+        req.team = team
+      }
 
-    if (team) {
-      req.team = team
-    }
-
-    next()
+      next()
   })
+  .catch((err) => next(err))
 }
 
 module.exports = ExtractTeam

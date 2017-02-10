@@ -8,16 +8,16 @@ exports.create = (req, res, next ) => {
   const user = new User(req.user)
 
   // Check if invitation don't already exist
-  Invitation.findOne({ email: email, team: teamId }, (err, invitationExist) => {
-    if (err) { return next(err) }
+  Invitation.findOne({ email: email, team: teamId })
+    .then((invitationExist) => {
 
     if (invitationExist) {
       return res.status(422).send({ error: 'An invitation is actually pending for this user' })
     }
 
     // Get team where user is invited
-    Team.findOne({ _id: teamId }, (err, team) => {
-      if (err) { return next(err) }
+    Team.findOne({ _id: teamId })
+      .then((team) => {
 
       if (!team) { return res.status(422).send({ error: 'Cannot retrieve team' }) }
 
@@ -28,22 +28,23 @@ exports.create = (req, res, next ) => {
       })
 
       // Check if user have already an account
-      User.findOne({ email: email}, (err, userInvited) => {
-        if (err) { return next(err) }
+      User.findOne({ email: email})
+        .then((userInvited) => {
 
         if(!userInvited) {
           // Send invitation email
         }
 
         // Save invitation
-        invitation.save((err) => {
-          if (err) { return next(err) }
-
-          res.send({ success: 'User successfully invited' })
-        })
+        invitation.save()
+        .then(() => res.send({ success: 'User successfully invited' }))
+        .catch((err) => next(err))
       })
+      .catch((err) => next(err))
     })
+    .catch((err) => next(err))
   })
+  .catch((err) => next(err))
 }
 
 exports.accept = (req, res, next) => {
@@ -53,8 +54,9 @@ exports.accept = (req, res, next) => {
   invitation.status_date = new Date()
 
   // Get user
-  User.findOne({ email: invitation.email}, (err, userInvited) => {
-    if (err) { return next(err) }
+  User.findOne({ email: invitation.email})
+    .then((userInvited) => {
+
     if(!userInvited) { return res.status(422).send({ error: 'Cannot retrieve this invitation' }) }
 
     // Check if user can only accept his invits
@@ -63,23 +65,23 @@ exports.accept = (req, res, next) => {
     }
 
   // Adding this user to the team
-    Team.findOne({ _id: req.invitation.team }, (err, team) => {
-      if (err) { return next(err) }
+    Team.findOne({ _id: req.invitation.team })
+      .then((team) => {
+
       if (!team) { return res.status(422).send({ error: 'Cannot retrieve team' }) }
 
       team.users.push(userInvited)
-      team.save((err) => {
-        if (err) { return next(err) }
+      team.save()
+        .then(() => {
 
         // Update invitation
-        invitation.save((err) => {
-          if (err) { return next(err) }
+        invitation.save()
+        .then(() => res.send({ success: `You have joined ${team.name}` }))
+        .catch((err) => next(err))
 
-          res.send({ success: `You have joined ${team.name}` })
-        })
-      })
-    })
-  })
+      }).catch((err) => next(err))
+    }).catch((err) => next(err))
+  }).catch((err) => next(err))
 }
 
 exports.decline = (req, res, next) => {
@@ -89,8 +91,9 @@ exports.decline = (req, res, next) => {
   invitation.status_date = new Date()
 
   // Get user
-  User.findOne({ email: invitation.email}, (err, userInvited) => {
-    if (err) { return next(err) }
+  User.findOne()
+    .then((userInvited) => {
+
     if(!userInvited) { return res.status(422).send({ error: 'Cannot retrieve this invitation' }) }
 
     // Check if user can only accept his invits
@@ -99,19 +102,17 @@ exports.decline = (req, res, next) => {
     }
 
     // Update invitation
-    invitation.save((err) => {
-      if (err) { return next(err) }
-
-      res.send({ success: `You have declined invitation` })
-    })
-  })
+    invitation.save()
+      .then(() => res.send({ success: `You have declined invitation` }))
+      .catch((err) => next(err))
+  }).catch((err) => next(err))
 }
 
 exports.find = (req, res, next) => {
-  Invitation.find({ email: req.user.email, status: 'Pending' }, (err, invitations) => {
-    if (err) { return next(err) }
-    if (!invitations) { return res.status(422).send({ error: 'Cannot retrieve invitations' }) }
+  Invitation.find({ email: req.user.email, status: 'Pending' })
+    .then((invitations) => {
 
+    if (!invitations) { return res.status(422).send({ error: 'Cannot retrieve invitations' }) }
     res.send({ invitations })
-  })
+  }).catch((err) => next(err))
 }

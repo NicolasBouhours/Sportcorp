@@ -3,15 +3,15 @@ const Channel = require('../models/channel')
 
 const ExtractChannel = (req, res, next) => {
 
-  Channel.findOne({ _id: req.params.channelId}, (err, channel) => {
-    if (err) { return next(err) }
+  Channel.findOne({ _id: req.params.channelId})
+    .then((channel) => {
+      if (channel) {
+        req.channel = channel
+      }
 
-    if (channel) {
-      req.channel = channel
-    }
-
-    next()
+      next()
   })
+  .catch((err) => next(err))
 }
 
 module.exports = ExtractChannel
