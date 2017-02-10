@@ -10,7 +10,7 @@ function tokenForUser(user) {
 exports.signin = (req, res, next) => {
   // User has already had their email and password auth
   // We just need to give them a token
-  res.send({ token: tokenForUser(req.user) })
+  res.send({ token: tokenForUser(req.user), id: req.user._id })
 }
 
 exports.signup = (req, res, next) => {
@@ -53,11 +53,11 @@ exports.update = (req, res, next) => {
   const { firstname, lastname, phone, job } = req.body
 
   if (!firstname || !lastname) {
-    return res.status(422).send({ error: 'You must provide an email, password, firstname and lastname' })
+    return res.status(422).send({ error: 'You must provide an firstname and lastname' })
   }
 
   // See if user already exist on database
-  User.findOne({ _id: req.params.id }, (err, existingUser) => {
+  User.findOne({ _id: req.user._id }, (err, existingUser) => {
     if (err) { return next(err) }
 
     // If user with an email exist, throw an error
@@ -92,7 +92,7 @@ exports.updatePassword = (req, res, next) => {
   }
 
   // See if user already exist on database
-  User.findOne({ _id: req.params.id }, (err, existingUser) => {
+  User.findOne({ _id: req.user._id }, (err, existingUser) => {
     if (err) { return next(err) }
 
     // If user with an email exist, throw an error

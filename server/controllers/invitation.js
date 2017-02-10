@@ -59,7 +59,7 @@ exports.accept = (req, res, next) => {
 
     // Check if user can only accept his invits
     if(!userInvited._id.equals(req.user._id)) {
-      return res.status(422).send({ error: 'Cannot access to others invitations' })
+      return res.status(403).send({ error: 'Cannot access to others invitations' })
     }
 
   // Adding this user to the team
@@ -95,7 +95,7 @@ exports.decline = (req, res, next) => {
 
     // Check if user can only accept his invits
     if(!userInvited._id.equals(req.user._id)) {
-      return res.status(422).send({ error: 'Cannot access to others invitations' })
+      return res.status(403).send({ error: 'Cannot access to others invitations' })
     }
 
     // Update invitation

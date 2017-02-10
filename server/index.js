@@ -8,10 +8,14 @@ const app = express()
 const router = require('./router')
 
 // Database Setup
-mongoose.connect('mongodb://localhost:auth/auth')
+if(process.env.NODE_ENV === 'test') {
+  mongoose.connect('mongodb://localhost:test/test')
+} else {
+  mongoose.connect('mongodb://localhost:auth/auth')
+  app.use(morgan('combined'))
+}
 
 // App Setup
-app.use(morgan('combined'))
 app.use(bodyParser.json({ type: '*/*' }))
 router(app)
 
@@ -20,3 +24,5 @@ const port = process.env.port || 3090
 const server = http.createServer(app)
 server.listen(port)
 console.log('Listening on port : ', port)
+
+module.exports = server; // for testing

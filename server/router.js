@@ -17,8 +17,8 @@ module.exports = (app) => {
     res.send({ hi: 'there'})
   })
   app.post('/signin', requireSignin, Authentication.signin)
-  app.put('/user/password/:id', Authentication.updatePassword)
-  app.put('/user/:id', Authentication.update)
+  app.put('/user/password', requireAuth, Authentication.updatePassword)
+  app.put('/user', requireAuth, Authentication.update)
   app.post('/signup', Authentication.signup)
 
   app.post('/team', [requireAuth], Team.create)
