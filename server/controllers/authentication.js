@@ -21,32 +21,28 @@ exports.signup = (req, res, next) => {
   }
 
   // See if user already exist on database
-  User.findOne({ email: email }, (err, existingUser) => {
-    if (err) { return next(err) }
+  User.findOne({ email: email })
+    .then((existingUser) => {
+      // If user with an email exist, throw an error
+      if (existingUser) {
+        return res.status(422).send({ error: 'Email is in use' })
+      }
 
-    // If user with an email exist, throw an error
-    if (existingUser) {
-      return res.status(422).send({ error: 'Email is in use' })
-    }
+      // If user with this email don't exist, create and save user record
+      const user = new User({
+        email,
+        password,
+        firstname,
+        lastname,
+        phone,
+        job
+      })
 
-    // If user with this email don't exist, create and save user record
-    const user = new User({
-      email,
-      password,
-      firstname,
-      lastname,
-      phone,
-      job
+      user.save()
+        .then(() => res.json({ token: tokenForUser(user) }))
+        .catch((err) => next(err))
     })
-
-    user.save((err) => {
-      if (err) { return next(err) }
-
-      // Send response that our user is created
-      res.json({ token: tokenForUser(user) })
-    })
-
-  })
+    .catch((err) => next(err))
 }
 
 exports.update = (req, res, next) => {
@@ -56,28 +52,26 @@ exports.update = (req, res, next) => {
     return res.status(422).send({ error: 'You must provide an firstname and lastname' })
   }
 
-  // See if user already exist on database
-  User.findOne({ _id: req.user._id }, (err, existingUser) => {
-    if (err) { return next(err) }
+  User.findOne({ _id: req.user._id })
+   .then((existingUser) => {
 
-    // If user with an email exist, throw an error
-    if (!existingUser) {
-      return res.status(422).send({ error: 'Cannot found user' })
-    }
+     // If user with an email exist, throw an error
+     if (!existingUser) {
+       return res.status(422).send({ error: 'Cannot found user' })
+     }
 
-    // If user with this email don't exist, create and save user record
-    existingUser.firstname = firstname
-    existingUser.lastname = lastname
-    existingUser.phone = phone
-    existingUser.job = job
+     // If user with this email don't exist, create and save user record
+     existingUser.firstname = firstname
+     existingUser.lastname = lastname
+     existingUser.phone = phone
+     existingUser.job = job
 
-    existingUser.save((err) => {
-      if (err) { return next(err) }
+     existingUser.save()
+     .then(() => res.json({ success: 'User modified successfully' }))
+     .catch((err) => next(err))
+   })
+   .catch((err) => next(err))
 
-      // Send response that our user is created
-      res.json({ success: 'User modified successfully' })
-    })
-  })
 }
 
 exports.updatePassword = (req, res, next) => {
@@ -92,22 +86,21 @@ exports.updatePassword = (req, res, next) => {
   }
 
   // See if user already exist on database
-  User.findOne({ _id: req.user._id }, (err, existingUser) => {
-    if (err) { return next(err) }
+  User.findOne({ _id: req.user._id })
+    .then((existingUser) => {
 
-    // If user with an email exist, throw an error
-    if (!existingUser) {
-      return res.status(422).send({ error: 'Cannot found user' })
-    }
+      // If user with an email exist, throw an error
+      if (!existingUser) {
+        return res.status(422).send({ error: 'Cannot found user' })
+      }
 
-    // If user with this email don't exist, create and save user record
-    existingUser.password = password
+      // If user with this email don't exist, create and save user record
+      existingUser.password = password
 
-    existingUser.save((err) => {
-      if (err) { return next(err) }
+      existingUser.save()
+        .then(() => res.json({ success: 'Password modified successfully' }) )
+        .catch((err) => next(err))
 
-      // Send response that our user is created
-      res.json({ success: 'Password modified successfully' })
     })
-  })
+    .catch((err) => next(err))
 }
