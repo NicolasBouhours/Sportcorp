@@ -19,7 +19,7 @@ exports.create = (req, res, next) => {
   team.save((err) => {
     if (err) { return next(err) }
 
-    res.send({ team: req.team, success: 'Team created successfully' })
+    res.send({ team: team, success: 'Team created successfully' })
   })
 }
 
@@ -28,13 +28,13 @@ exports.find = (req, res, next) => {
 }
 
 exports.findByUser = (req, res, next) => {
-  console.log('user', req.user)
-  Team.find().populate({ path: 'users', match: { _id: req.user._id }}).exec((err, teams) => {
+  //Team.find({ 'users._id': req.user._id }).exec((err, teams) => {
+  Team.find({}).populate({ path: 'users', match: { _id: req.user._id }}).exec((err, teams) => {
     if (err) { return next(err) }
 
     teams = teams.filter(team => team.users.length > 0)
 
-    res.send({ teams: teams })
+    res.send({ teams })
   })
 }
 

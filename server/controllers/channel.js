@@ -35,7 +35,7 @@ exports.create = (req, res, next) => {
       // Populate channel into team
       team.channels.push(channel)
       team.save((err) => {
-        res.send({ channel: channel, success: 'Channel created successfully' })
+        res.send({ channel: channel._id, success: 'Channel created successfully' })
       })
     })
   })
